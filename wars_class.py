@@ -18,11 +18,9 @@ class Player:
     # define our class
     money=0
     available_inventory=0
-    max_inventory=10
+    max_inventory=100
     current_inventory=0
     current_location=[]
-
-
     # Trick #1: deepcopy to make a copy not a 'reference'
     player_inv = copy.deepcopy(products)
     # Trick #2: Reset all values in dict to '0'
@@ -71,6 +69,10 @@ def gen_prices(products):
         products[high_item]=int(int(tmp_item_dict[high_item]) + random.randint(1,10) * 1.72)
         products[low_item]=int(int(tmp_item_dict[low_item])  / 3)
 
+        if products[low_item] <= 0:
+            products[low_item]=1
+
+
         count=0
         for products,price in products.items():
             # only one random item should change a lot, others, only a small amount
@@ -83,25 +85,18 @@ def gen_prices(products):
 def sell(player,quantity,selected_product):
     print(f"selling {quantity} of {product_keys[selected_product]}")
     player.player_inv[product_keys[selected_product]] -= quantity
-
     player.money= player.money + (quantity * int(products[product_keys[selected_product]]) )
     return
 
 def buy(player,quantity,selected_product):
     print(f"buying {quantity} of {product_keys[selected_product]}")
     player.player_inv[product_keys[selected_product]] += quantity
-
     player.money= player.money - (quantity * int(products[product_keys[selected_product]]) )
-    #print(player.player_inv)
-    #myguy.current_inventory=sum(myguy.player_inv.values())
-    #player.check_inventory_space(player)
     return
 
 
-
-
 def get_input(player,turn_number):
-        action=(input("\n[B]uy, [S]ell, or [E]nd turn?"))
+        action=(input("\n[B]uy, [S]ell, [E]nd turn, or [Q]uit? "))
         match action.split():
             case ['b']:
                 selected_product= (input("What would you like to purchase? "))
@@ -126,20 +121,22 @@ def get_input(player,turn_number):
                 selected_product=int(selected_product)
                 # Does the player have the product if so, how many do they have?
                 owned=player.player_inv[product_keys[selected_product]]
-
                 sell_quantity = int(input(f" You have {owned}, how much {product_keys[selected_product]} would you like to sell? "))   
-                
                 sell(player,sell_quantity,selected_product)
                 turn_number += 1
                 return turn_number
             case ['e']:
-                print("skipping turn...")
+                print("ending turn...")
                 turn_number +=1
-                print(f" turn: {turn_number}")
+                #print(f" turn: {turn_number}")
                 return turn_number
-            case ['x']:
+            case ['q']:
                 print("quitting...")
                 exit()
+            case _:
+                pass
+                print("invalid choice")
+                return turn_number
         print(player.player_inv)
         return
 
@@ -148,10 +145,8 @@ def get_input(player,turn_number):
 myguy=  Player()
 myguy.money=29
 
-
 # Main loop
 turn_number = 1
-
 while turn_number <= 10:
 
     high_item,low_item= gen_prices(products)
@@ -175,9 +170,9 @@ while turn_number <= 10:
 
 
 
- 
-
-
+print("GAME OVER!") 
+print(Fore.YELLOW + f"You made ${myguy.money}!")
+print(Fore.YELLOW + f"{myguy.player_inv}")
     
 
 

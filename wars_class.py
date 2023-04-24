@@ -1,6 +1,3 @@
-#wars_class.py
-
-
 import random
 import copy
 
@@ -10,9 +7,8 @@ from colorama import Fore, Back, Style
 init(autoreset=True)
 print("\n\n")
 
-
 locations=["gym", "playground","cafeteria","hallway","classroom"]
-products ={"hard candy":10,"chocolate bars":5,"donuts":3,"macaroons":4,"peanut butter cups":7}
+products ={"hard candy":1,"chocolate bars":2,"donuts":3,"macaroons":5,"peanut butter cups":8}
 
 class Player:
     # define our class
@@ -54,51 +50,57 @@ class Player:
         return True
 
 
-def gen_prices(products):
+def gen_prices(_products):
         # copy the product dict
-        tmp_item_dict=copy.deepcopy(products)
+        tmp_item_dict=copy.deepcopy(_products)
         # randomly select a high item from the temp dict
         high_item=random.choice(list(tmp_item_dict.keys()))
         # then pop [remove] the high item from the temp dict
         _unused_element = tmp_item_dict.pop(high_item)
         # randomly select a low item from remaining items in the temp dict
         low_item=random.choice(list(tmp_item_dict.keys()))
-        # reset the temp dict to the orginal
-        tmp_item_dict=products.copy()
+        # reset the temp dict to the original
+        tmp_item_dict=copy.deepcopy(_products)
         
-        products[high_item]=int(int(tmp_item_dict[high_item]) + random.randint(1,10) * 1.72)
-        products[low_item]=int(int(tmp_item_dict[low_item])  / 3)
+        _products[high_item]=int(int(tmp_item_dict[high_item]) + random.randint(1,10) * 1.72)
+        _products[low_item]=int(((tmp_item_dict[low_item])  + random.randint(1,10) * 1.72) / random.randint(2,4))
 
-        if products[low_item] <= 0:
-            products[low_item]=1
+        if _products[low_item] <= 0:
+            _products[low_item]=1
 
 
         count=0
-        for products,price in products.items():
+        for product,price in _products.items():
             # only one random item should change a lot, others, only a small amount
-            price = int(price) + random.randint(1,3)
-            #print(count,products,price)
-            count+=1
+            price = int(price) + random.randint(0,3)
+            price = int(price) - random.randint(0,3)
+            print(count,product,price)
+            count += 1
         
         return high_item,low_item
 
-def sell(player,quantity,selected_product):
-    print(f"selling {quantity} of {product_keys[selected_product]}")
-    player.player_inv[product_keys[selected_product]] -= quantity
-    player.money= player.money + (quantity * int(products[product_keys[selected_product]]) )
+
+
+def transaction(player,action,quantity,selected_product):
+    print(f"{action}: {quantity} of {product_keys[selected_product]}")
+    if action=='buy':
+        player.player_inv[product_keys[selected_product]] += quantity
+        player.money = player.money - (quantity * int(products[product_keys[selected_product]]) )
+    if action=='sell':
+        player.player_inv[product_keys[selected_product]] -= quantity
+        player.money = player.money + (quantity * int(products[product_keys[selected_product]]) )
     return
 
-def buy(player,quantity,selected_product):
-    print(f"buying {quantity} of {product_keys[selected_product]}")
-    player.player_inv[product_keys[selected_product]] += quantity
-    player.money= player.money - (quantity * int(products[product_keys[selected_product]]) )
-    return
+     
+
 
 
 def get_input(player,turn_number):
         action=(input("\n[B]uy, [S]ell, [E]nd turn, or [Q]uit? "))
         match action.split():
             case ['b']:
+                #transaction(player,"buy",quantity,selected_product)
+
                 selected_product= (input("What would you like to purchase? "))
                 selected_product=int(selected_product)
                 buy_quantity = int(input(f"How much {product_keys[selected_product]} would you like to purchase? "))   
@@ -107,7 +109,8 @@ def get_input(player,turn_number):
                     subtotal=buy_quantity * int(products[product_keys[selected_product]])
                     # Does the player have money?
                     if player.check_account_balance(subtotal):
-                        buy(player,buy_quantity,selected_product)
+                       # buy(player,buy_quantity,selected_product)
+                        transaction(player,"buy",buy_quantity,selected_product)
                         turn_number += 1
                         #return turn_number
                     else:
@@ -122,7 +125,8 @@ def get_input(player,turn_number):
                 # Does the player have the product if so, how many do they have?
                 owned=player.player_inv[product_keys[selected_product]]
                 sell_quantity = int(input(f" You have {owned}, how much {product_keys[selected_product]} would you like to sell? "))   
-                sell(player,sell_quantity,selected_product)
+                #sell(player,sell_quantity,selected_product)
+                transaction(player,"sell",sell_quantity,selected_product)
                 turn_number += 1
                 return turn_number
             case ['e']:
@@ -143,32 +147,26 @@ def get_input(player,turn_number):
 
 
 myguy=  Player()
-myguy.money=29
+myguy.money=100
+product_keys = list(products)
 
 # Main loop
 turn_number = 1
-while turn_number <= 10:
+while turn_number <= 30:
 
     high_item,low_item= gen_prices(products)
-    product_keys = list(products)
-
-    print("\n")
-    print(f"Turn #: {turn_number}")
-
+    myguy.current_inventory=sum(myguy.player_inv.values())
+    
+    print(f"\nTurn #: {turn_number}")
     i=0
     for item,price in products.items():
         print(Fore.YELLOW + f'{i}: {item} at ${price}')
         i+=1
-
-
     print(Fore.RED + f"\nhigh: {high_item} " + Fore.GREEN + f"low: {low_item} \n")
-    myguy.current_inventory=sum(myguy.player_inv.values())
     print(Fore.YELLOW + f"You have ${myguy.money} and {myguy.current_inventory}/{myguy.max_inventory}")
     print(Fore.YELLOW + f"{myguy.player_inv}")
     
     turn_number=int(get_input(myguy,turn_number))
-
-
 
 print("GAME OVER!") 
 print(Fore.YELLOW + f"You made ${myguy.money}!")
@@ -188,6 +186,45 @@ print(Fore.YELLOW + f"{myguy.player_inv}")
 
 '''
 
+# def sell(player,quantity,selected_product):
+#     print(f"selling {quantity} of {product_keys[selected_product]}")
+#     player.player_inv[product_keys[selected_product]] -= quantity
+#     player.money= player.money + (quantity * int(products[product_keys[selected_product]]) )
+#     return
+
+# def buy(player,quantity,selected_product):
+#     print(f"buying {quantity} of {product_keys[selected_product]}")
+#     player.player_inv[product_keys[selected_product]] += quantity
+#     player.money= player.money - (quantity * int(products[product_keys[selected_product]]) )
+#     return
+
+
+
+def transaction(player,action,quantity,selected_product):
+    selected_product= (input(f"What would you like to {action}? "))
+    selected_product=int(selected_product)
+    if action=="buy":
+        buy_quantity = int(input(f"How much {product_keys[selected_product]} would you like to purchase? "))
+        # Does the player have space?
+        if player.check_inventory_space(buy_quantity):
+            subtotal=buy_quantity * int(products[product_keys[selected_product]])
+            # Does the player have money?
+            if player.check_account_balance(subtotal):
+                buy(player,buy_quantity,selected_product)
+                turn_number += 1
+                #return turn_number
+            else:
+                return turn_number
+        else:
+            return turn_number
+        return turn_number   
+    if action=="sell":
+        # Does the player have the product if so, how many do they have?
+        owned=player.player_inv[product_keys[selected_product]]
+        sell_quantity = int(input(f" You have {owned}, how much {product_keys[selected_product]} would you like to sell? ")) 
+        sell(player,sell_quantity,selected_product)
+        turn_number += 1
+        return turn_number 
                     
                 #subtotal=quantity * int(products[product_keys[selected_product]])
                # player.check_money(subtotal)

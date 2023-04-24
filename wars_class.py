@@ -78,8 +78,6 @@ def gen_prices(_products):
         
         return high_item,low_item
 
-
-
 def transaction(player,action,quantity,selected_product):
     print(f"{action}: {quantity} of {product_keys[selected_product]}")
     if action=='buy':
@@ -91,18 +89,22 @@ def transaction(player,action,quantity,selected_product):
     return
 
      
-
-
-
 def get_input(player,turn_number):
         action=(input("\n[B]uy, [S]ell, [E]nd turn, or [Q]uit? "))
         match action.split():
             case ['b']:
-                #transaction(player,"buy",quantity,selected_product)
+                selected_product= (input("What would you like to buy? "))
+                if selected_product.isdigit():
+                    selected_product=int(selected_product)
+                    if selected_product not in range(0, len(products)):
+                        print(f"product number '{selected_product}' does not exist")
+                        return turn_number
+                    else:
+                        buy_quantity = int(input(f"How much {product_keys[selected_product]} would you like to purchase? ").isdigit())   
+                else:
+                    print(f"product '{selected_product}' does not exist")
+                    return turn_number
 
-                selected_product= (input("What would you like to purchase? "))
-                selected_product=int(selected_product)
-                buy_quantity = int(input(f"How much {product_keys[selected_product]} would you like to purchase? "))   
                 # Does the player have space?
                 if player.check_inventory_space(buy_quantity):
                     subtotal=buy_quantity * int(products[product_keys[selected_product]])
@@ -120,10 +122,29 @@ def get_input(player,turn_number):
 
             case ['s']:
                 selected_product= (input("What would you like to sell? "))
-                selected_product=int(selected_product)
+                if selected_product.isdigit():
+                    selected_product=int(selected_product)
+                    if int(selected_product) not in range(0, len(products)):
+                        print(f"product number '{selected_product}' does not exist")
+                        return turn_number
+                    else:
+                        sell_quantity = int(input(f"How much {product_keys[selected_product]} would you like to sell? "))   
+                # else:
+                #     print(f"product '{selected_product}' does not exist")
+                #     return turn_number
+
+
+
+                # selected_product= int(input("What would you like to sell? "))
+                # if selected_product not in range(0, len(products)):
+                #     print(f"product number '{selected_product}' does not exist")
+                #     return turn_number
                 # Does the player have the product if so, how many do they have?
                 owned=player.player_inv[product_keys[selected_product]]
-                sell_quantity = int(input(f" You have {owned}, how much {product_keys[selected_product]} would you like to sell? "))   
+                if owned <=0:
+                    print("You cannot sell what you do not own!")
+                    return turn_number
+               # sell_quantity = int(input(f" You have {owned}, how much {product_keys[selected_product]} would you like to sell? "))   
                 if sell_quantity <= owned:
                     transaction(player,"sell",sell_quantity,selected_product)
                     turn_number += 1
@@ -131,10 +152,10 @@ def get_input(player,turn_number):
                 else:
                     print("You cannot sell more than you have!")
                     return turn_number
+
             case ['e']:
                 print("ending turn...")
                 turn_number +=1
-                #print(f" turn: {turn_number}")
                 return turn_number
             case ['q']:
                 print("quitting...")
@@ -143,20 +164,29 @@ def get_input(player,turn_number):
                 pass
                 print("invalid choice")
                 return turn_number
-        print(player.player_inv)
-        return
-
-
+    
 
 myguy=  Player()
 myguy.money=100
 product_keys = list(products)
 
 # Main loop
+prev_turn_number=0
 turn_number = 1
 while turn_number <= 30:
 
-    high_item,low_item= gen_prices(products)
+    #save turn number, 
+    # if turn number hasn't changed
+    # dont regen
+    # else: 
+    # regen
+    # 
+    
+    if prev_turn_number is not turn_number:
+        high_item,low_item= gen_prices(products)
+
+    prev_turn_number=turn_number
+
     myguy.current_inventory=sum(myguy.player_inv.values())
     
     print(f"\nTurn #: {turn_number}")

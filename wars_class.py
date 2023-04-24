@@ -26,7 +26,6 @@ class Player:
     def check_inventory_space(self,_quantity=0):
         print('checking your inventory...')
         # what is the total space available to the player
-        #change all of this to total the values in self.player_inv
         self.current_inventory=sum(self.player_inv.values())
         # Does the player have enough space for the purchase?
         self.available_inventory = self.max_inventory - self.current_inventory
@@ -74,7 +73,7 @@ def gen_prices(_products):
             # only one random item should change a lot, others, only a small amount
             price = int(price) + random.randint(0,3)
             price = int(price) - random.randint(0,3)
-            print(count,product,price)
+            #print(count,product,price)
             count += 1
         
         return high_item,low_item
@@ -125,10 +124,13 @@ def get_input(player,turn_number):
                 # Does the player have the product if so, how many do they have?
                 owned=player.player_inv[product_keys[selected_product]]
                 sell_quantity = int(input(f" You have {owned}, how much {product_keys[selected_product]} would you like to sell? "))   
-                #sell(player,sell_quantity,selected_product)
-                transaction(player,"sell",sell_quantity,selected_product)
-                turn_number += 1
-                return turn_number
+                if sell_quantity <= owned:
+                    transaction(player,"sell",sell_quantity,selected_product)
+                    turn_number += 1
+                    return turn_number
+                else:
+                    print("You cannot sell more than you have!")
+                    return turn_number
             case ['e']:
                 print("ending turn...")
                 turn_number +=1

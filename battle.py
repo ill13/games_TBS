@@ -1,12 +1,20 @@
 import random
 from enum import Enum
+from colorama import init
+from colorama import Fore, Back, Style
 
-Weapon = Enum("Weapon", "Sword, Damage_Spell, Fire_Elemental")
-Shield = Enum("Shield", "Armor, Magic, Water_Elemental")
+init(autoreset=True)
 
+
+Weapon = Enum("Weapon", "Sword, Damage_Spell, Elemental_Fire")
+Shield = Enum("Shield", "Armor, Magic, Elemental_Water")
+
+# 'blocks' is a set or whatever. 
+# 'blocks' could be replaced with 'stops' or 'defends' - the word itself has no reserved meaning
+#  Whatever is in this set
 Shield.Armor.blocks = { Weapon.Sword }
 Shield.Magic.blocks = { Weapon.Damage_Spell }
-Shield.Water_Elemental.blocks = { Weapon.Fire_Elemental }
+Shield.Elemental_Water.blocks = { Weapon.Elemental_Fire }
 
 class Player:
     def __init__(self, name):
@@ -47,53 +55,200 @@ class Game:
 
     def new_round(self):
         self.round += 1
-        print(f"\n***   Round: {self.round}   ***\n")  
+        print(Fore.RED + f"\n***   Round: {self.round}   ***\n")  
 
     # Check if either or both Players is below zero health
     # change this to a loop that iterates all players and their health
-    def check_win(self, player, opponent):
-        if player.health < 1 and opponent.health > 0:
+    def check_win(self, player, enemy):
+        if player.health < 1 and enemy.health > 0:
             self.game_over = True
             print("You Lose")
-        elif opponent.health < 1 and player.health > 0:
+        elif enemy.health < 1 and player.health > 0:
             self.game_over = True
             print("You Win")
-        elif player.health < 1 and opponent.health < 1:
+        elif player.health < 1 and enemy.health < 1:
             self.game_over = True
             print("*** Draw ***")
 
 
-    def display_result(self, player, opponent):
-            print(f"{player.name} attacks {opponent.name} with their {player.weapon.name}, {opponent.name} defended with their Shield of {opponent.shield.name} \n")
-            print(f"{player.name} caused damage to {opponent.name}\n")
 
-    def take_turn(self, player, opponent):
+    def take_turn(self, player, enemy):
 
-        if player.weapon not in opponent.shield.blocks:
-            opponent.damage()
-            current_game.display_result(player, opponent)
+        if player.weapon not in enemy.shield.blocks:
+            points=enemy.damage()
+           # current_game.display_result(player, enemy,points)
+            print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name} \n")
+            print(f"{player.name} caused {points} damage to {enemy.name}\n")
         else:
-            print(f"{player.name} attacks {opponent.name} with their {player.weapon.name}, {opponent.name} defended with their Shield of {opponent.shield.name} \n")
-            print(f"{opponent.name} blocked {player.name}'s attack - No Damage\n")
+            print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name} \n")
+            print(f"{enemy.name} blocked {player.name}'s attack!\n")
+            
+        print (f"{player.name} : {player.health} | {enemy.name} : {enemy.health}")
 
 # Setup Game Objects
 current_game = Game()
-human = Player("ill13")
+human = AiPlayer("ill13")
 ai = AiPlayer("PureEvil")
-ai2 = AiPlayer("NooTrell")
+ai2 = AiPlayer("Nootrell")
 
 players = [human, ai,ai2]
 
 # Main Game Loop
 while not current_game.game_over:
-    for player in players:
-        player.select_weapon()
-        player.select_shield()
-    current_game.new_round()
-    current_game.take_turn(human, ai)
-    current_game.take_turn(ai, human)
-    current_game.take_turn(ai, ai2)
-    print(f"{human.name}'s health = {human.health}")
+
+    i = 0
+    
+    battling = True
+
+    while battling:
+        current_game.new_round()
+        for player in players:
+            player.select_weapon()
+            player.select_shield()
+        current_player = players[i]
+        i = (i + 1) % len(players)
+        challenger = players[i]
+        current_game.take_turn(current_player, challenger)
+        
+        
+        for player in players:
+            #print (f"{player.name} : {player.health}")
+            if player.health <= 0:
+                print(f"{player.name} has been defeated!")
+                players.remove(player)
+                i=0
+
+        if len(players)<=1:
+            print("STOPPPPPPPPPPP")
+            battling=False
+            current_game.check_win(current_player, challenger)
+            
+
+    
+
+    # weapon select
+    # for player in players:
+    #     player.select_weapon()
+    #     player.select_shield()
+    
+    #current_game.new_round()
+
+    # current_game.take_turn(human, ai)
+    # current_game.take_turn(ai, human)
+
+    # for player in players:
+    #     print(f"{player.name}'s health = {player.health}")
+
+    #current_game.check_win(human, ai)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+
+
+
+ 
+    # current_game.new_round()  
+    # battling = True
+    # idx = 0
+
+    # while battling:
+    #     for player in players:
+    #         player.select_weapon()
+    #         player.select_shield()
+    #     current_player = players[idx]
+    #     idx = (idx + 1) % len(players)
+    #     challenger = players[idx]
+    #     current_game.take_turn(current_player, challenger)
+
+    #     if idx <= len(players)+1:
+    #         battling=True
+    #     else:
+    #         battling=False
+              
+        
+    #     for player in players:
+    #         print (f"{player.name} : {player.health}")
+            
+    #         if player.health <= 0:
+    #             battling=False
+    #             current_game.game_over=True
+        
+
+
+
+
+
+
+
+
+
+    # def display_result(self, player, enemy,points):
+    #         print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name} \n")
+    #         print(f"{player.name} caused {points} damage to {enemy.name}\n")
+
+        # if idx <= len(players)+1:
+        #     battling=True
+        #     current_game.new_round()
+        # else:
+        #     battling=False
+            
+              
+
+
+    # for player in players:
+    #     player.select_weapon()
+    #     player.select_shield()
+    #    
+
+
+
+    #print(f"{human.name} : {human.health} | {ai.name} : {ai.health} | {ai2.name} : {ai2.health}")
+
+    # change below into a loop that check for any player to be 0 health ro less
+    #current_game.check_win(human, ai)
+
+
+
+
+        # print(f"{human.name}'s health = {human.health}")
+        # print(f"{ai.name}'s health = {ai.health}")
+        # print(f"{ai2.name}'s health = {ai2.health}")
+        #print(idx,len(players))
+
+
+print(f"{human.name}'s health = {human.health}")
     print(f"{ai.name}'s health = {ai.health}")
     print(f"{ai2.name}'s health = {ai2.health}")
-    current_game.check_win(human, ai)
+
+
+
+        # for player in players:
+        #     if player.health <= 0:
+        #         running=False
+
+
+    # current_game.take_turn(human, ai)
+    # current_game.take_turn(ai, human)
+    # current_game.take_turn(ai, ai2)
+
+
+
+
+
+'''

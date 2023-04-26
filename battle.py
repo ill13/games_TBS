@@ -42,6 +42,10 @@ class Player:
 
 class AiPlayer(Player):
 
+    def __init__(self, name):
+        self.name = name
+        self.health = 50
+
     def select_weapon(self):
         self.weapon = random.choice(list(Weapon))
 
@@ -82,7 +86,7 @@ class Game:
         else:
             print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name} \n")
             print(f"{enemy.name} blocked {player.name}'s attack!\n")
-            
+
         print (f"{player.name} : {player.health} | {enemy.name} : {enemy.health}")
 
 # Setup Game Objects
@@ -108,6 +112,9 @@ while not current_game.game_over:
         current_player = players[i]
         i = (i + 1) % len(players)
         challenger = players[i]
+        # change to random attack. After first attack, 
+        # the defender will attack the player / aggressor who last attacked them
+        # 
         current_game.take_turn(current_player, challenger)
         
         
@@ -119,7 +126,7 @@ while not current_game.game_over:
                 i=0
 
         if len(players)<=1:
-            print("STOPPPPPPPPPPP")
+            print("The battle is over!")
             battling=False
             current_game.check_win(current_player, challenger)
             

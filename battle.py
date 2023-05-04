@@ -74,47 +74,144 @@ class Game:
             self.game_over = True
             print("*** Draw ***")
 
+    def check_health(self, player, enemy,players):
+        #print(player,enemy)
+        if player.health < 1 and enemy.health > 0:
+            print(f"{player.name} Loses")
+            #players.remove(player)
+        elif enemy.health < 1 and player.health > 0:
+            print(f"{player.name} Wins")
+            #players.remove(enemy)
+        elif player.health < 1 and enemy.health < 1:
+            print("*** Draw ***")
+            #players.remove(player)
+            #players.remove(enemy)
+            
+
+    # def check_health(self,players):
+    #     for player in players:
+    #         #print (f"{player.name} : {player.health}")
+    #         if player.health <= 0:
+    #             print(f"{player.name} has been defeated!")
+    #             players.remove(player)
+    #             #i=0
+    #             return 0
 
 
-    def take_turn(self, player, enemy):
+
+    def take_turn(self, player, enemy,players):
+
+        self.check_health(player,enemy,players)
+        if player not in players:
+            return
+        if enemy not in players:
+            return
+
 
         if player.weapon not in enemy.shield.blocks:
             points=enemy.damage()
            # current_game.display_result(player, enemy,points)
-            print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name} \n")
+            print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name}")
             print(f"{player.name} caused {points} damage to {enemy.name}\n")
         else:
-            print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name} \n")
+            print(f"{player.name} attacks {enemy.name} with their {player.weapon.name}, {enemy.name} defended with their Shield of {enemy.shield.name}")
             print(f"{enemy.name} blocked {player.name}'s attack!\n")
 
-        print (f"{player.name} : {player.health} | {enemy.name} : {enemy.health}")
+        print (f"{player.name} : {player.health} | {enemy.name} : {enemy.health}\n")
+        
 
 # Setup Game Objects
 current_game = Game()
 human = AiPlayer("ill13")
 ai = AiPlayer("PureEvil")
 ai2 = AiPlayer("Nootrell")
+ai3 = AiPlayer("BadGuy")
 
-players = [human, ai,ai2]
+players = [human, ai,ai2,ai3]
 
 # Main Game Loop
 while not current_game.game_over:
 
-    i = 0
-    
-    battling = True
+    random_player = random.choice(players[1:])
 
+    # Encapsulate this in a neat loop for N turns
+    i = 0
+    battling = True
+    while battling:
+        current_game.new_round()
+
+        for player in players:
+        #print (f"{player.name} : {player.health}")
+            if player.health <= 0:
+                print(f"{player.name} has been defeated!")
+                players.remove(player)
+            
+        for player in players:
+            player.select_weapon()
+            player.select_shield()
+        # Choose one player from the list at random
+        # However, the selected player cannot be the first player in the list
+        
+       # print(i)
+        # Call the function that prints the names of the players
+        # Using the first player from the list and the randomly chosen player as parameters
+        current_game.take_turn(players[0], random_player,players)
+
+        # Call the same function with the previous random player and the first player in reverse parameter order
+        current_game.take_turn(random_player, players[0],players)
+
+        #current_game.check_health(random_player, players[0])
+
+        # Choose another player from the list at random
+        # However, this selected player cannot be the first player in the list or any of the previously selected players
+        remaining_players = [player for player in players if player not in (players[0], random_player)]
+
+        if len(remaining_players) >= 2:
+            another_random_player = random.choice(remaining_players)
+            new_random_player = random.choice(players)
+
+            # Call the function that prints the names of the players
+            # Using the random player from the list that was just selected and any one player from that list at random as a parameter
+            current_game.take_turn(another_random_player,new_random_player,players)
+            current_game.take_turn(new_random_player, another_random_player,players)
+
+    
+        # for player in players:
+        #     #print (f"{player.name} : {player.health}")
+        #     if player.health <= 0:
+        #         print(f"{player.name} has been defeated!")
+        #         players.remove(player)
+        #         i=0
+
+        if len(players)<=2:
+            print("The battle is over!")
+            battling=False
+            #current_game.check_win(current_player, challenger)
+
+
+
+
+    '''
+     # old style 1
+    i = 0
+    battling = True
     while battling:
         current_game.new_round()
         for player in players:
             player.select_weapon()
             player.select_shield()
+        
+       
         current_player = players[i]
         i = (i + 1) % len(players)
         challenger = players[i]
+        
+
         # change to random attack. After first attack, 
         # the defender will attack the player / aggressor who last attacked them
         # 
+
+
         current_game.take_turn(current_player, challenger)
         
         
@@ -130,7 +227,8 @@ while not current_game.game_over:
             battling=False
             current_game.check_win(current_player, challenger)
             
-
+    # old style 1 
+    '''    
     
 
     # weapon select
